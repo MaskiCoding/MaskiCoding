@@ -33,8 +33,7 @@ jobs:
         run: |
           cd crawl
           npm run build
-          node dist/index.js MaskiCoding ..
-
+          node dist/index.js ${{ github.repository_owner }} ..
       
       - name: Commit and push
         run: |
