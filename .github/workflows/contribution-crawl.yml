@@ -27,14 +27,14 @@ jobs:
           cd crawl
           npm ci
       
-      - name: Generate SVGs
+      - name: Build and Generate SVGs
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd crawl
           npm run build
-          npm start -- MaskiCoding
-          cp dist/contribution-crawl-*.svg ../
+          node dist/index.js MaskiCoding ..
+
       
       - name: Commit and push
         run: |
