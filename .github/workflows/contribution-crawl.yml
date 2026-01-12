@@ -2,56 +2,44 @@ name: Generate Contribution Crawl
 
 on:
   schedule:
-    - cron: "0 0 * * *"  # Daily at midnight UTC
-  workflow_dispatch:      # Manual trigger
-  push:
-    branches:
-      - main
-
-permissions:
-  contents: write
+    # Runs at midnight UTC every day
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout profile repo
         uses: actions/checkout@v4
-      
-      - name: Clone Contribution Crawl
-        run: git clone https://github.com/MaskiCoding/Contribution-Crawl.git crawl
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
       
-      - name: Install dependencies
-        working-directory: crawl
-        run: npm ci
-      
-      - name: Build
-        working-directory: crawl
-        run: npm run build
+      - name: Clone Contribution Crawl
+        run: |
+          git clone https://github.com/MaskiCoding/Contribution-Crawl.git crawl
+          cd crawl
+          npm ci
       
       - name: Generate SVGs
-        working-directory: crawl
-        run: node dist/index.js MaskiCoding ../output
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Move SVGs to repo root
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          mv output/contribution-crawl-light.svg .
-          mv output/contribution-crawl-dark.svg .
-          rm -rf crawl output
+          cd crawl
+          npm run build
+          npm start -- MaskiCoding
+          cp dist/contribution-crawl-*.svg ../
       
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add contribution-crawl-*.svg
-          git diff --staged --quiet || git commit -m "Update Contribution Crawl animation"
+          git diff --staged --quiet || git commit -m "Update Contribution Crawl"
           git push
